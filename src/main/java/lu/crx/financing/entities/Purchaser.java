@@ -3,13 +3,8 @@ package lu.crx.financing.entities;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,7 +43,7 @@ public class Purchaser implements Serializable {
      * The per-creditor settings for financing.
      */
     @Singular
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Set<PurchaserFinancingSettings> purchaserFinancingSettings = new HashSet<>();
 
 }

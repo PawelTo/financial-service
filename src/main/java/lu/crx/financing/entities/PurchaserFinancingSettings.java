@@ -1,12 +1,8 @@
 package lu.crx.financing.entities;
 
 import java.io.Serializable;
-import jakarta.persistence.Basic;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,7 +26,8 @@ public class PurchaserFinancingSettings implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "creditor_id")
     private Creditor creditor;
 
     /**
@@ -38,5 +35,4 @@ public class PurchaserFinancingSettings implements Serializable {
      */
     @Basic(optional = false)
     private int annualRateInBps;
-
 }

@@ -2,12 +2,8 @@ package lu.crx.financing.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import jakarta.persistence.Basic;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,14 +29,18 @@ public class Invoice implements Serializable {
 
     /**
      * Creditor is the entity that issued the invoice.
+     * Setting fetch = FetchType.LAZY to avoid potentially N+1 hibernate query problem
      */
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "creditor_id")
     private Creditor creditor;
 
     /**
      * Debtor is the entity obliged to pay according to the invoice.
+     * Setting fetch = FetchType.LAZY to avoid potentially N+1 hibernate query problem
      */
-    @ManyToOne
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "debtor_id")
     private Debtor debtor;
 
     /**
@@ -68,4 +68,12 @@ public class Invoice implements Serializable {
      */
     @Basic
     private Long discountedAmountInCents;
+
+    /**
+     * Field added for potential performance improvement.
+     * Allows creating an index in the database to enable more efficient retrieval of only unprocessed invoices
+     * (e.g., where financed = false).
+     */
+    @Column
+    private boolean financed;
 }
