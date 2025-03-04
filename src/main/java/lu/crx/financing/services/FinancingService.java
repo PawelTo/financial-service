@@ -9,6 +9,8 @@ import lu.crx.financing.repository.InvoiceRepository;
 import lu.crx.financing.repository.PurchaserRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
@@ -94,11 +96,14 @@ public class FinancingService {
                     .findFirst()
                     .get()
                     .getId();
-            long discountAmount = invoice.getValueInCents() * calculateFinancingRate(bpfs, daysForFinancing) / 10_000L;
+            long discountAmount = BigDecimal.valueOf(invoice.getValueInCents())
+                    .multiply(BigDecimal.valueOf(calculateFinancingRate(bpfs, daysForFinancing)))
+                    .divide(BigDecimal.valueOf(10_000L), 10, RoundingMode.HALF_UP)
+                    .longValue();
             long earlyPaymentAmountInCents = invoice.getValueInCents() - discountAmount;
             return new FinancingCalculationResult(invoice.getId(), discountAmount, earlyPaymentAmountInCents, purchaserId);
         } else {
-            log.warn("Couldn't find purchaser financing settings for invoice: {} ", invoice.getId());
+            log.warn("Couldn't find purchaser financing settings for invoice_id: {} ", invoice.getId());
             return new FinancingCalculationResult(0L, 0L, 0L, 0L);
         }
     }
@@ -113,7 +118,12 @@ public class FinancingService {
     }
 
     private long calculateFinancingRate(PurchaserFinancingSettings pfs, long daysForFinancing) {
-        return pfs.getAnnualRateInBps() * daysForFinancing / DAYS_IN_YEAR;
+        BigDecimal annualRate = BigDecimal.valueOf(pfs.getAnnualRateInBps());
+        BigDecimal financingDays = BigDecimal.valueOf(daysForFinancing);
+        return annualRate
+                .multiply(financingDays)
+                .divide(BigDecimal.valueOf(DAYS_IN_YEAR), 10, RoundingMode.HALF_UP)
+                .longValue();
     }
 
     private record FinancingCalculationResult(long invoiceId, long discountAmount, long earlyPaymentAmountInCents,
